@@ -1,32 +1,25 @@
-# aula-ml — Versionamento de Dados e Modelos
+# aula-ml
 
-Repositório da Atividade Prática 07 (CK0444 — Engenharia de Sistemas Inteligentes, UFC).
-Versiona datasets, partições de treino/teste e modelos de classificação de chamados usando Git + DVC.
+Repositório da Atividade Prática 07 de Engenharia de Sistemas Inteligentes (CK0444, UFC). Aqui versiono o dataset de chamados, a divisão de treino e teste e os modelos gerados usando Git junto com DVC.
 
 ## Pré-requisitos
 
-- **Git** (`git --version`)
-- **Python 3.10+** (`python3 --version`, testado com Python 3.14.4; o script `src/train.py` usa apenas a biblioteca padrão)
-- **DVC 3.x** (`dvc --version`, testado com DVC 3.67.1)
+Você precisa de Git, Python 3.10 ou mais novo (rodei tudo no 3.14.4; `src/train.py` só usa a biblioteca padrão) e DVC 3 (`dvc 3.67.1` no meu ambiente).
 
-## Configuração de acesso ao armazenamento DVC
+## Armazenamento DVC
 
-O repositório já possui o remoto padrão `storage` configurado em `.dvc/config` apontando para a pasta irmã `../dvc-storage` (armazenada em `.dvc/config` como `../../dvc-storage` em relação ao diretório `.dvc/`).
+O arquivo `.dvc/config` já aponta o remoto padrão `storage` para `../../dvc-storage`, que resolve para a pasta irmã `../dvc-storage` a partir da raiz do projeto. Se o diretório `dvc-storage` estiver ao lado do clone com os objetos enviados via `dvc push`, o `dvc pull` puxa os dados e o modelo sem configuração extra.
 
-Para que o `dvc pull` funcione em um clone limpo:
-
-1. Garanta que o diretório `dvc-storage` esteja ao lado do diretório clonado (mesma pasta pai) com os objetos enviados via `dvc push`.
-2. Caso o armazenamento esteja em outro caminho, atualize o remoto localmente sem alterar o histórico versionado (ou ajuste conforme necessário):
+Caso o storage fique em outro caminho na sua máquina, atualize o remoto apenas localmente para não alterar os arquivos versionados no Git:
 
 ```bash
 dvc remote list
-# Caso precise apontar para outro diretório:
-# dvc remote modify --local storage url /caminho/para/dvc-storage
+dvc remote modify --local storage url /caminho/para/dvc-storage
 ```
 
-## Restauração de versões anteriores
+## Como restaurar uma versão
 
-Cada rodada de dados e treinamento está marcada com tags Git (`dados-v1`, `modelo-r1`, `dados-v2`, `modelo-r2`). Para recuperar uma versão específica (por exemplo, `modelo-r1`) em um clone limpo sem retreinar o modelo:
+As rodadas de dados e treino ficam marcadas pelas tags `dados-v1`, `modelo-r1`, `dados-v2` e `modelo-r2`. Para recuperar `modelo-r1` em um diretório limpo:
 
 ```bash
 git clone https://github.com/arturgarcia13/aula-ml.git aula-ml-restauracao
@@ -35,7 +28,7 @@ git switch --detach modelo-r1
 dvc pull
 ```
 
-Para conferir a integridade dos arquivos restaurados contra o manifesto registrado em `reports/modelo.json`:
+Não precisa treinar nada de novo: o `dvc pull` traz o `models/model.json` salvo naquela rodada. Para conferir se os arquivos recuperados batem com os hashes registrados em `reports/modelo.json`:
 
 ```bash
 python3 - <<'PY'
@@ -56,10 +49,4 @@ for caminho, campo in [
 PY
 ```
 
-## Reprodução do treinamento
-
-Com os dados restaurados pelo DVC (`dvc pull`), o treinamento e a avaliação podem ser executados novamente com:
-
-```bash
-python3 src/train.py <model_id>
-```
+Se quiser rodar o treinamento de novo depois do `dvc pull`, execute `python3 src/train.py <model_id>`.
